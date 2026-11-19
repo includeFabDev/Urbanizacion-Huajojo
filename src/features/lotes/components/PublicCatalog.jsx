@@ -93,31 +93,31 @@ export default function PublicCatalog() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-6xl px-5 py-10 sm:px-8">
+    <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-10">
       <header className="mb-8">
-        <Link className="text-sm font-semibold text-emerald-800" href="/">Urbanización Guajojó</Link>
-        <p className="mt-5 text-sm font-semibold uppercase tracking-wide text-emerald-800">Catálogo público</p>
+        <Link className="text-sm font-semibold text-brand hover:text-brand-hover" href="/">Urbanización Guajojó</Link>
+        <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-brand">Catálogo público</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-900">Lotes disponibles</h1>
         <p className="mt-2 max-w-2xl text-slate-600">
           Urbanización ubicada en Trinidad, Beni. Solo se muestran lotes con habilitación comercial confirmada.
         </p>
       </header>
 
-      <form className="mb-7 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4" onSubmit={submit}>
-        <label className="text-sm font-medium text-slate-700">
+      <form className="form-card mb-7 grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4" onSubmit={submit}>
+        <label className="form-label">
           Buscar lote o manzano
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" onChange={(event) => change("q", event.target.value)} value={filters.q} />
+          <input className="form-control" onChange={(event) => change("q", event.target.value)} value={filters.q} />
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="form-label">
           Manzano
-          <select className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2" onChange={(event) => change("manzano_id", event.target.value)} value={filters.manzano_id}>
+          <select className="form-control" onChange={(event) => change("manzano_id", event.target.value)} value={filters.manzano_id}>
             <option value="">Todos</option>
             {manzanos.map((item) => <option key={item.id} value={item.id}>{item.codigo}</option>)}
           </select>
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="form-label">
           Categoría
-          <select className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2" onChange={(event) => change("categoria", event.target.value)} value={filters.categoria}>
+          <select className="form-control" onChange={(event) => change("categoria", event.target.value)} value={filters.categoria}>
             <option value="">Todas</option>
             <option value="REGULAR">Regular</option>
             <option value="VIS">VIS</option>
@@ -127,16 +127,16 @@ export default function PublicCatalog() {
         <FilterField label="Superficie máxima (m²)" onChange={(value) => change("area_max", value)} value={filters.area_max} />
         <FilterField label="Precio mínimo" onChange={(value) => change("precio_min", value)} value={filters.precio_min} />
         <FilterField label="Precio máximo" onChange={(value) => change("precio_max", value)} value={filters.precio_max} />
-        <div className="flex items-end gap-2">
-          <button className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white" type="submit">Buscar</button>
-          <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700" onClick={clear} type="button">Limpiar</button>
+        <div className="form-actions sm:col-span-2 lg:col-span-4">
+          <button className="btn-primary" type="submit">Buscar</button>
+          <button className="btn-secondary" onClick={clear} type="button">Limpiar</button>
         </div>
       </form>
 
-      {errorMessage ? <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{errorMessage}</p> : null}
+      {errorMessage ?       <p className="form-alert mb-4" role="alert">{errorMessage}</p> : null}
       {loading ? <p className="py-12 text-center text-slate-600" role="status">Cargando catálogo…</p> : null}
       {!loading && !errorMessage && items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">
+        <p className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600 sm:p-10">
           No se encontraron lotes con los filtros seleccionados.
         </p>
       ) : null}
@@ -148,20 +148,20 @@ export default function PublicCatalog() {
           const currency = lot.moneda_referencia ?? lot.moneda;
           return (
             <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" key={lot.id}>
-              <div className="h-1.5 bg-emerald-800" />
+              <div className="h-1.5 bg-brand" />
               <div className="p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">{lot.urbanizacion_nombre} · {lot.manzano_codigo}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand">{lot.urbanizacion_nombre} · {lot.manzano_codigo}</p>
                 <h2 className="mt-2 text-xl font-bold text-slate-900">Lote {lot.numero}</h2>
                 <p className="mt-1 text-sm text-slate-600">{lot.categoria ?? "Categoría sin informar"}</p>
                 <dl className="mt-5 space-y-3 text-sm">
                   <Data label="Superficie" value={area == null ? "Sin informar" : `${area} m²`} />
                   {area != null && lot.superficie_verificada_m2 == null ? (
-                    <p className="text-xs text-amber-800">{surfaceProvenance(lot)}</p>
+                    <p className="form-alert mt-2 py-2 text-xs" data-tone="warning">{surfaceProvenance(lot)}</p>
                   ) : null}
                   <Data label="Precio total de referencia" value={total == null ? "Sin informar" : `${currency ?? "Moneda sin informar"} ${total}`} />
                   {lot.precio_por_m2 != null ? <Data label="Precio por m²" value={`${currency ?? "Moneda sin informar"} ${lot.precio_por_m2}`} /> : null}
                 </dl>
-                <Link className="mt-5 inline-flex font-semibold text-emerald-800 hover:underline" href={`/lotes/${lot.id}`}>Ver características y medidas →</Link>
+                <Link className="mt-5 inline-flex font-semibold text-brand underline underline-offset-2 hover:text-brand-hover" href={`/lotes/${lot.id}`}>Ver características y medidas →</Link>
               </div>
             </article>
           );
@@ -170,9 +170,9 @@ export default function PublicCatalog() {
 
       {!loading && meta.total_pages > 1 ? (
         <div className="mt-8 flex items-center justify-between">
-          <button className="rounded border border-slate-300 px-3 py-2 text-sm disabled:opacity-50" disabled={meta.page <= 1} onClick={() => load(meta.page - 1, appliedFilters)} type="button">Anterior</button>
+          <button className="btn-secondary min-h-10 px-3 py-2 text-sm" disabled={meta.page <= 1} onClick={() => load(meta.page - 1, appliedFilters)} type="button">Anterior</button>
           <p aria-live="polite" className="text-sm text-slate-600">Página {meta.page} de {meta.total_pages}</p>
-          <button className="rounded border border-slate-300 px-3 py-2 text-sm disabled:opacity-50" disabled={meta.page >= meta.total_pages} onClick={() => load(meta.page + 1, appliedFilters)} type="button">Siguiente</button>
+          <button className="btn-secondary min-h-10 px-3 py-2 text-sm" disabled={meta.page >= meta.total_pages} onClick={() => load(meta.page + 1, appliedFilters)} type="button">Siguiente</button>
         </div>
       ) : null}
     </main>
@@ -188,9 +188,9 @@ function surfaceProvenance(lot) {
 
 function FilterField({ label, onChange, value }) {
   return (
-    <label className="text-sm font-medium text-slate-700">
+    <label className="form-label">
       {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" inputMode="decimal" onChange={(event) => onChange(event.target.value)} value={value} />
+      <input className="form-control" inputMode="decimal" onChange={(event) => onChange(event.target.value)} value={value} />
     </label>
   );
 }

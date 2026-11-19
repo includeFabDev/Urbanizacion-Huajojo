@@ -108,8 +108,8 @@ export default function AdminLotes() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-            Administración
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
+            Administración · inventario
           </p>
           <h1 className="mt-1 text-3xl font-bold text-slate-900">Lotes</h1>
           <p className="mt-2 text-sm text-slate-600">
@@ -117,35 +117,35 @@ export default function AdminLotes() {
           </p>
         </div>
         <Link
-          className="rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white"
+          className="btn-primary"
           href="/panel/lotes/nuevo"
         >
           Registrar lote
         </Link>
       </div>
 
-      <form className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-4" onSubmit={submitFilters}>
-        <label className="text-sm font-medium text-slate-700">
+      <form className="form-card grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4" onSubmit={submitFilters}>
+        <label className="form-label">
           Buscar lote o manzano
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" onChange={(event) => changeFilter("q", event.target.value)} value={filters.q} />
+          <input className="form-control" onChange={(event) => changeFilter("q", event.target.value)} value={filters.q} />
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="form-label">
           Manzano
-          <select className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2" onChange={(event) => changeFilter("manzano_id", event.target.value)} value={filters.manzano_id}>
+          <select className="form-control" onChange={(event) => changeFilter("manzano_id", event.target.value)} value={filters.manzano_id}>
             <option value="">Todos</option>
             {manzanos.map((item) => <option key={item.id} value={item.id}>{item.codigo}</option>)}
           </select>
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="form-label">
           Disponibilidad
-          <select className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2" onChange={(event) => changeFilter("disponibilidad", event.target.value)} value={filters.disponibilidad}>
+          <select className="form-control" onChange={(event) => changeFilter("disponibilidad", event.target.value)} value={filters.disponibilidad}>
             <option value="">Todas</option>
             {Object.entries(availabilityLabel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="form-label">
           Categoría
-          <select className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2" onChange={(event) => changeFilter("categoria", event.target.value)} value={filters.categoria}>
+          <select className="form-control" onChange={(event) => changeFilter("categoria", event.target.value)} value={filters.categoria}>
             <option value="">Todas</option>
             <option value="REGULAR">Regular</option>
             <option value="VIS">VIS</option>
@@ -155,19 +155,19 @@ export default function AdminLotes() {
         <FilterField label="Área máxima (m²)" onChange={(value) => changeFilter("area_max", value)} value={filters.area_max} />
         <FilterField label="Precio total mínimo" onChange={(value) => changeFilter("precio_min", value)} value={filters.precio_min} />
         <FilterField label="Precio total máximo" onChange={(value) => changeFilter("precio_max", value)} value={filters.precio_max} />
-        <label className="text-sm font-medium text-slate-700">
+        <label className="form-label">
           Ordenar por
-          <select className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2" onChange={(event) => changeFilter("order_by", event.target.value)} value={filters.order_by}>
+          <select className="form-control" onChange={(event) => changeFilter("order_by", event.target.value)} value={filters.order_by}>
             <option value="manzano">Manzano y número</option>
             <option value="numero">Número</option>
             <option value="area">Superficie</option>
             <option value="precio">Precio total</option>
           </select>
         </label>
-        <div className="flex items-end gap-2 md:col-span-3">
-          <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white" type="submit">Aplicar filtros</button>
+        <div className="form-actions sm:col-span-2 lg:col-span-4">
+          <button className="btn-primary" type="submit">Aplicar filtros</button>
           <button
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium"
+            className="btn-secondary"
             onClick={() => {
               const cleared = { q: "", manzano_id: "", disponibilidad: "", categoria: "", area_min: "", area_max: "", precio_min: "", precio_max: "", order_by: "manzano" };
               setFilters(cleared);
@@ -182,7 +182,7 @@ export default function AdminLotes() {
         </div>
       </form>
 
-      {errorMessage ? <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{errorMessage}</p> : null}
+      {errorMessage ? <p className="form-alert" role="alert">{errorMessage}</p> : null}
       {loading ? <p className="text-slate-600" role="status">Cargando lotes…</p> : null}
       {!loading && !errorMessage && items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
@@ -199,7 +199,7 @@ export default function AdminLotes() {
                 <h2 className="mt-1 text-xl font-bold text-slate-900">Lote {lot.numero}</h2>
                 <p className="mt-1 text-sm text-slate-600">{lot.categoria ?? "Categoría sin informar"} · {lot.urbanizacion_nombre}</p>
               </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+              <span className={`business-status ${statusClass(lot.disponibilidad)}`}>
                 {availabilityLabel[lot.disponibilidad] ?? "Sin informar"}
               </span>
             </div>
@@ -209,7 +209,7 @@ export default function AdminLotes() {
               <Data label="Precio por m²" value={lot.precio_por_m2 == null ? "Sin informar" : `${currencyFor(lot) ?? "Moneda sin informar"} ${lot.precio_por_m2}`} />
               <Data label="Habilitación comercial" value={lot.habilitado_para_venta == null ? "Sin confirmar" : lot.habilitado_para_venta ? "Habilitado" : "No habilitado"} />
             </dl>
-            <Link className="mt-5 inline-block text-sm font-semibold text-emerald-800 hover:underline" href={`/panel/lotes/${lot.id}`}>
+            <Link className="mt-5 inline-block text-sm font-semibold text-brand underline underline-offset-2 hover:text-brand-hover" href={`/panel/lotes/${lot.id}`}>
               Ver detalle →
             </Link>
           </article>
@@ -219,14 +219,14 @@ export default function AdminLotes() {
       {!loading && meta.total_pages > 1 ? (
         <div className="flex items-center justify-between">
           <button
-            className="rounded border border-slate-300 px-3 py-2 text-sm disabled:opacity-50"
+            className="btn-secondary min-h-10 px-3 py-2 text-sm"
             disabled={meta.page <= 1}
             onClick={() => load(makeQuery(meta.page - 1))}
             type="button"
           >Anterior</button>
           <p className="text-sm text-slate-600">Página {meta.page} de {meta.total_pages}</p>
           <button
-            className="rounded border border-slate-300 px-3 py-2 text-sm disabled:opacity-50"
+            className="btn-secondary min-h-10 px-3 py-2 text-sm"
             disabled={meta.page >= meta.total_pages}
             onClick={() => load(makeQuery(meta.page + 1))}
             type="button"
@@ -240,11 +240,18 @@ export default function AdminLotes() {
 
 function FilterField({ label, onChange, value }) {
   return (
-    <label className="text-sm font-medium text-slate-700">
+    <label className="form-label">
       {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" inputMode="decimal" onChange={(event) => onChange(event.target.value)} value={value} />
+      <input className="form-control" inputMode="decimal" onChange={(event) => onChange(event.target.value)} value={value} />
     </label>
   );
+}
+
+function statusClass(status) {
+  if (status === "disponible") return "business-status-available";
+  if (status === "reservado") return "business-status-reserved";
+  if (status === "vendido") return "business-status-sold";
+  return "business-status-unknown";
 }
 
 function Data({ label, value }) {

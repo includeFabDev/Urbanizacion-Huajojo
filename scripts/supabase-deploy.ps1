@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory = $true)]
-  [ValidateSet("status", "preflight", "sprint1-preflight", "dry-run", "apply", "import", "verify")]
+  [ValidateSet("status", "preflight", "sprint1-preflight", "sprint2-preflight", "dry-run", "apply", "import", "verify")]
   [string]$Action
 )
 
@@ -102,6 +102,12 @@ switch ($Action) {
     Invoke-SupabaseCli -Arguments @(
       "db", "query", $remote, "--read-only", "--file",
       (Join-Path $repoRoot "supabase\verification\sprint1-preflight.sql"), $workdir
+    )
+  }
+  "sprint2-preflight" {
+    Invoke-SupabaseCli -Arguments @(
+      "db", "query", $remote, "--read-only", "--file",
+      (Join-Path $repoRoot "supabase\verification\sprint2-preflight.sql"), $workdir
     )
   }
   "apply" {

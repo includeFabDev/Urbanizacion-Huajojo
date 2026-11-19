@@ -1,74 +1,101 @@
 # Avance
 
-## Etapa actual
+## Estado actual
 
-Sprint 1 (UH-1 a UH-4) está implementado y verificado en el proyecto Supabase
-de desarrollo. No se inició Sprint 2 ni se desplegó el proyecto.
+Se está preparando Sprint 2 (UH-7 a UH-9) en la rama local `sprint-2`, basada
+en el commit existente de Sprint 1 `f678705`. No se creó otro commit ni se
+publicó o desplegó el proyecto. El alcance de implementación se limita a
+clientes mínimos, ventas, consulta de saldos, pagos y recibos; no incluye
+documentos privados de compraventa, pasarelas ni notificaciones externas.
 
-Las migraciones 001–004 están aplicadas en el orden previsto. Se consultó el
-historial y el dry-run antes de aplicar la migración 004; no se usó reset ni
-se cargó el seed ficticio.
+La migración `202611190005_sprint2_sales_payments_receipts.sql` fue aplicada
+después de confirmar que 001–004 estaban aplicadas; el historial remoto quedó
+en 001–005 y no se ejecutaron seeds ni reimportaciones. La migración incluye
+validaciones RPC, límites de importes y la instantánea persistida del recibo.
 
-## Datos de desarrollo preservados
+## Bloqueo de integridad detectado antes de ejecutar Sprint 2
 
-La verificación remota posterior a las pruebas confirmó:
+En las verificaciones remotas de solo lectura ejecutadas el 19/nov/2026:
 
-- 1 urbanización, 4 manzanos, 61 lotes, 244 lados y 6 áreas comunes.
-- Los 61 lotes importados mantienen habilitación comercial `NULL`; no hay
-  lotes publicados.
-- Cero lotes o lados duplicados y cero relaciones huérfanas.
-- Los IDs importados se conservan; las secuencias verificadas están
-  sincronizadas con sus IDs máximos.
-- No se modificaron los 61 lotes importados ni se cargaron datos de seed.
+- Se confirmó el conteo base: 1 urbanización, 4 manzanos, 61 lotes, 244 lados
+  y 6 áreas comunes.
+- Las relaciones no tienen huérfanos y no se detectaron duplicados de
+  lotes/lados. Hay 0 clientes, ventas, pagos y cuotas antes de Sprint 2.
+- Sin embargo, los 61 lotes importados tienen
+  `habilitado_para_venta = true`; los 61 aparecen disponibles/publicados.
+  `habilitado_para_venta IS NULL` cuenta 0.
+- El archivo versionado `supabase/import_existing.sql` expresa `NULL` para
+  habilitación en las filas importadas, y la documentación previa registraba
+  61 valores desconocidos y cero publicados. La base actual contradice ambas
+  evidencias.
 
-Las E2E usaron lotes QA etiquetados y separados de los importados. Los
-registros temporales se eliminaron, y las verificaciones posteriores
-confirmaron que los conteos originales se conservaron.
+No se actualizó ni sobrescribió ninguno de los 61 lotes. Se detuvo antes de
+aplicar la migración o crear ventas/datos QA remotos. Se requiere investigar
+la procedencia del cambio y acordar cómo resolverlo antes de continuar con
+pruebas que dependan del proyecto de desarrollo. La discrepancia no se
+presenta como resuelta.
 
-## Trabajo de Sprint 1
+## Implementación local de Sprint 2
 
-- Registro, consulta, filtros, paginación, detalle y edición de lotes.
-- Validación de números únicos por manzano y escritura segura de los lados.
-- Catálogo público limitado a lotes con habilitación explícita y disponibilidad
-  efectiva; `NULL` no se interpreta como disponible.
-- Inicio/cierre de sesión y autorización de operaciones administrativas por rol
-  `owner`.
-- Procedencia de superficies y longitudes estimadas conservada, sin
-  presentarlas como medidas verificadas.
-- Se conserva el modelo existente de cotizaciones y reservas; no se
-  implementan sus flujos fuera del alcance de Sprint 1.
+- Se añadieron contratos Zod para clientes, ventas y pagos.
+- Se añadieron servicios/repositorios y rutas administrativas para clientes,
+  registro/listado/detalle de ventas, saldo, pagos e información de recibos.
+- Se añadieron pantallas de registro, listado, detalle, consulta de saldo e
+  historial; el PDF es regenerable desde los metadatos de recibo y no se
+  persiste en el filesystem.
+- La migración 005 agrega funciones RPC protegidas por `owner`, pagos
+  atómicos/idempotentes, unicidad de recibos y un índice parcial de identidad
+  de clientes. No modifica filas de lotes importados.
+- Se añadieron pruebas unitarias de contratos y escenarios E2E QA que limpian
+  únicamente filas etiquetadas. La discrepancia de habilitación se detectó en
+  la verificación previa; las E2E posteriores se ejecutaron con filas QA
+  separadas y sin modificar los lotes importados.
+- No se añadió calendario de cuotas, intereses ni multas; no se crea pago
+  inicial ni recibo al registrar una venta.
 
-## Verificación real
+## Verificaciones locales ejecutadas
 
-- E2E owner: aprobada; login/logout, panel y consulta de los 61 lotes, alta y
-  edición QA, persistencia, rechazo de duplicado, publicación/exclusión pública
-  y rechazo sin sesión.
-- E2E autenticada sin rol: aprobada con cuenta Auth temporal. La cuenta fue
-  verificada sin rol `owner` y eliminada al finalizar. El panel mostró acceso
-  restringido sin datos privados; los endpoints administrativos de listado,
-  manzanos y detalle, y los intentos POST/PATCH respondieron `403`. El PATCH
-  apuntó a un lote QA temporal; el owner confirmó que no cambió y el test lo
-  eliminó. No se alteró el rol owner existente.
-- Preflight final: un rol `owner`, 61 lotes con habilitación desconocida y cero
-  publicados; conteos finales iguales a los importados.
-- Integridad: cero duplicados y huérfanos; secuencias sincronizadas con los
-  IDs máximos verificados.
-- `npm test`: 6 pruebas aprobadas; `npm run lint` y `npm run build` aprobados.
-- `.env.local` está ignorado y el escaneo local de archivos fuente fuera de
-  archivos `.env*`, dependencias y builds no encontró patrones de secretos.
-- Git se inicializó localmente en `main`. No hay staging, commit, remoto ni
-  push; no se publicó ningún archivo. La preparación de Vercel está en
-  `docs/despliegue.md`.
+- `npm test`: 10 pruebas aprobadas (3 archivos).
+- `npm run lint`: aprobado.
+- `npm run build`: aprobado.
+- E2E Sprint 2 owner: aprobada una vez corregido el selector de métricas.
+  Verificó venta válida/no disponible, concurrencia, pagos parciales y totales,
+  sobrepago, idempotencia y descarga PDF.
+- E2E sin rol: aprobada. Las rutas cliente/venta/pago/recibo fueron añadidas
+  y respondieron `403` para una cuenta autenticada sin owner.
+- `.env.local` está ignorado y no está versionado; `.env.example` es el único
+  archivo `.env*` versionado y contiene marcadores.
+- Post-E2E: 61 lotes originales, 0 clientes, 0 ventas, 0 pagos y 0 cuotas;
+  244 lados y 6 áreas comunes conservados.
+- Migración 005 aplicada únicamente una vez; el historial remoto lista 001–005.
+- No se hizo commit, push ni despliegue.
 
-## Pendientes y límites conocidos
+## Pendiente concreto
 
-- Next.js ya no informa el uso inestable de `Date.now()` al prerenderizar el
-  panel. Durante las E2E aún informa que el redirect esperado de una sesión
-  anónima interrumpe la validación de instant UI y que el segmento del panel
-  no se puede validar como navegación instantánea. La ruta requiere comprobar
-  sesión/rol por solicitud; los flujos autenticados y restringidos pasan. Se
-  conservaron las validaciones activas y no se ocultó el aviso con una
-  configuración de exclusión.
-- Subir el repositorio privado a GitHub e importar/configurar en Vercel son
-  pasos futuros; no se conectó GitHub ni se desplegó.
-- Sprint 2 permanece sin iniciar.
+1. Resolver la discrepancia entre los 61 estados remotos `true/publicados` y
+   el estado `NULL` previsto por el SQL de importación. No se alteró ningún lote.
+2. Revisar manualmente el PDF generado y decidir si se requiere una firma o
+   una copia auténtica; no se implementó almacenamiento de documentos.
+
+Sprint 2 está implementado y verificado en desarrollo; no se desplegó a Vercel
+ni se modificaron estados de Jira.
+
+## Rediseño visual de formularios
+
+- Se identificaron y rediseñaron acceso, catálogo y sus filtros, filtros
+  administrativos, alta/edición de lotes, búsqueda de ventas, selección/alta
+  mínima de clientes, registro de ventas y registro de pagos. No existe una
+  pantalla independiente de clientes ni formularios modales.
+- Los tokens claros y clases reutilizables están documentados en
+  `src/app/globals.css` y `docs/arquitectura.md`. Se mantuvieron contratos,
+  permisos, validaciones y lógica comercial.
+- La E2E responsive capturó los formularios en 1280 px y 360 px y comprobó que
+  no hubiera desbordamiento horizontal. Capturas locales: `test-results/ui-*.png`
+  (archivos ignorados por Git).
+- En el formulario de venta, “Revisar venta” permanece deshabilitado hasta
+  seleccionar un cliente o elegir registrar uno nuevo; la apariencia atenuada
+  es el estado deshabilitado previsto, no la ausencia de lotes. La lista de
+  clientes existente está vacía y no se añadió ningún cliente para el diseño.
+- No se modificaron datos ni se ejecutaron migraciones, importaciones o seeds.
+  La discrepancia documentada de habilitación comercial remota permanece sin
+  cambios.

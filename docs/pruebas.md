@@ -1,59 +1,67 @@
 # Pruebas
 
-## Resultados
+## Resultados Sprint 1
 
-- `npm test`: 6 pruebas aprobadas.
+- `npm test`: aprobado, 6 pruebas.
 - `npm run lint`: aprobado.
-- `npm run build`: compilación de producción aprobada.
-- `npm run test:e2e -- --workers=1`: la E2E de owner aprobada; la prueba
-  separada de cuenta sin rol aparece omitida en esta ejecución porque requiere
-  el aprovisionamiento temporal de una cuenta.
-- `npm run test:e2e:nonowner`: 1 prueba aprobada. El script creó una cuenta
-  Auth temporal confirmada, verificó que no tuviera fila en `user_roles`,
-  ejecutó la prueba y eliminó la cuenta sin cambiar el rol owner.
+- `npm run build`: aprobado.
+- E2E owner: aprobada; login/logout, panel, consulta de 61 lotes,
+  alta/edición QA, duplicado por manzano y publicación/exclusión.
+- E2E sin rol: aprobada; panel denegado, APIs `403`, datos privados no
+  consultados ni modificados.
+- Los registros creados por las pruebas fueron limpiados.
 
-## Flujos E2E de owner
+## Resultados Sprint 2 verificados localmente
 
-- Rechazo de la API administrativa sin sesión y redirección del panel al
-  inicio de sesión.
-- Inicio de sesión, acceso al panel y consulta de los 61 lotes.
-- Registro de un lote de prueba etiquetado, edición y persistencia.
-- Rechazo de número duplicado dentro del mismo manzano.
-- Inclusión en el catálogo al habilitar la disponibilidad y exclusión al
-  deshabilitarla.
-- Cierre de sesión y rechazo posterior del acceso al panel.
-- Limpieza del lote QA sin modificar filas importadas.
+- `npm test`: 10 pruebas aprobadas en 3 archivos.
+- `npm run lint`: aprobado.
+- `npm run build`: aprobado.
+- E2E owner Sprint 2: aprobada en una repetición real. Verificó venta válida,
+  rechazo de lote no disponible, concurrencia de ventas, saldo inicial,
+  pagos parciales y total, sobrepago, reintento idempotente, bloqueo del lote
+  totalmente pagado y descarga PDF.
+- E2E sin rol: aprobada con rutas Sprint 1 y Sprint 2. Las rutas administrativas
+  del negocio respondieron `403`; el panel quedó restringido. La cuenta temporal
+  fue eliminada.
+- La ejecución posterior al cleanup confirmó 61 lotes, 0 clientes, 0 ventas,
+  0 pagos y 0 cuotas, sin duplicados ni relaciones huérfanas.
 
-## Flujos E2E sin rol owner
+## Migración remota y datos
 
-La prueba inició sesión con la cuenta temporal sin rol y verificó:
+- 001–005 aparecen aplicadas en el historial remoto tras la ejecución real de 005.
+- 005 no incluyó seed ni reimportación.
+- Se conservan 1 urbanización, 4 manzanos, 61 lotes importados, 244 lados y
+  6 áreas comunes.
+- La discrepancia de habilitación sigue pendiente: la base remota informa
+  61 valores `true` y publicados, mientras el SQL de importación versionado
+  registra `NULL`. Ninguna fila fue corregida ni sobrescrita durante Sprint 2.
 
-- El panel muestra acceso restringido y no revela el listado de 61 lotes ni
-  enlaces administrativos.
-- `GET /api/v1/lotes`, `GET /api/v1/manzanos`,
-  `GET /api/v1/lotes/{id}`, `POST /api/v1/lotes` y
-  `PATCH /api/v1/lotes/{id}` responden `403` con código `FORBIDDEN` y sin
-  objeto `data`.
-- El GET y PATCH sobre un lote privado de prueba también responden `403`.
-  Después, el owner verificó que la observación y versión de ese lote seguían
-  iguales; solo el lote QA fue eliminado.
-- La cuenta temporal Auth fue eliminada por el script incluso después de la
-  prueba; el owner de desarrollo no se modificó.
+## Pendientes
 
-Tras la limpieza, Supabase confirmó 1 urbanización, 4 manzanos, 61 lotes,
-244 lados, 6 áreas comunes, 61 habilitaciones `NULL`, cero lotes públicos,
-cero duplicados y cero huérfanos. Las secuencias verificadas coinciden con los
-IDs máximos.
+- Acordar la procedencia y corrección de los 61 estados remotos de habilitación.
+- Revisar manualmente el PDF generado y su contenido identificado.
+- La suite E2E sigue separada de los datos importados y limpia solo registros
+  etiquetados por su marcador.
 
-## Mensajes Next.js y límites
+## Rediseño responsive de formularios
 
-El aviso anterior de `Date.now()` al prerenderizar el panel dejó de aparecer
-tras marcar el acceso protegido como trabajo de request con `connection()`.
-Siguen apareciendo durante E2E avisos de Instant UI: la validación anónima
-encuentra el `NEXT_REDIRECT` intencional hacia login, y el segmento del panel
-no se valida como instantáneo. La funcionalidad está verificada y no se
-desactivó la validación para silenciar estos avisos; la optimización de
-navegación instantánea queda pendiente.
-
-No se ejecutaron pruebas contra producción ni se desplegó. Sprint 2 no se
-inició.
+- E2E Sprint 2 con `E2E_CAPTURE_DESIGN=1`: aprobada; generó capturas de login,
+  catálogo público, filtros administrativos, alta y edición de lotes, búsqueda
+  de ventas, alta de venta y registro de pagos a 1280 px y 360 px.
+- Cada captura esperó a que terminaran los estados de carga y comprobó que el
+  ancho del documento no excediera el viewport. Las capturas son locales en
+  `test-results/ui-*.png` y están ignoradas por Git.
+- Revisión visual directa de login, catálogo, formularios de lotes, venta y
+  pago en móvil/escritorio; sin desbordamientos observados. No se alteró el
+  formato del PDF.
+- La E2E verificó también el orden de foco por teclado del enlace de marca y el
+  campo de correo en login. Las etiquetas de los campos fueron consultadas por
+  sus nombres accesibles durante las E2E funcionales.
+- Tras el rediseño: `npm test` (10 pruebas), `npm run lint`, `npm run build` y
+  E2E propietario Sprint 1 aprobados. E2E sin rol quedó omitida en esta última
+  pasada porque no estaban configuradas las variables temporales
+  `E2E_NONOWNER_EMAIL` y `E2E_NONOWNER_PASSWORD`; no se declara como aprobada
+  aquí.
+- No se modificaron lotes importados ni se ejecutaron migraciones, importación
+  o seed. Los registros QA creados por las E2E se limpiaron mediante sus
+  pruebas.

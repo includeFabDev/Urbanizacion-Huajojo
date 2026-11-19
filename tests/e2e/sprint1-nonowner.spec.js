@@ -92,6 +92,34 @@ test("authenticated non-owner cannot access or change administrative data", asyn
           fields: { observaciones: "Unauthorized update attempt" },
         },
       }),
+      apiAsNonOwner.get("/api/v1/clientes?limit=25"),
+      apiAsNonOwner.post("/api/v1/clientes", {
+        data: { nombre: "Cliente no autorizado", identificacion: randomUUID() },
+      }),
+      apiAsNonOwner.get("/api/v1/ventas?page=1&page_size=20"),
+      apiAsNonOwner.post("/api/v1/ventas", {
+        data: {
+          lote_id: createdLotId,
+          cliente: { nombre: "Cliente no autorizado" },
+          tipo: "contado",
+          precio_final: "1.00",
+          moneda: "USD",
+          forma_pago: "Prueba no autorizada",
+          fecha_venta: "2026-11-19",
+        },
+      }),
+      apiAsNonOwner.get(`/api/v1/ventas/${randomUUID()}`),
+      apiAsNonOwner.get(`/api/v1/ventas/${randomUUID()}/saldo`),
+      apiAsNonOwner.post(`/api/v1/ventas/${randomUUID()}/pagos`, {
+        data: {
+          idempotency_key: randomUUID(),
+          monto: "1.00",
+          moneda: "USD",
+          medio_pago: "Prueba no autorizada",
+          fecha_pago: "2026-11-19",
+        },
+      }),
+      apiAsNonOwner.get(`/api/v1/pagos/${randomUUID()}/recibo`),
     ];
 
     for (const response of await Promise.all(requests)) {

@@ -30,23 +30,27 @@ export default function LoginForm() {
   }
 
   return (
-    <form className="space-y-5" onSubmit={submit}>
-      <label className="block text-sm font-medium text-slate-700">
-        Correo electrónico
+    <form className="form-stack" onSubmit={submit}>
+      <label className="form-label">
+        Correo electrónico <span className="required-mark" aria-hidden="true">*</span>
+        <span className="sr-only"> obligatorio</span>
         <input
           autoComplete="email"
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+          className="form-control"
+          id="login-email"
           onChange={(event) => setEmail(event.target.value)}
           required
           type="email"
           value={email}
         />
       </label>
-      <label className="block text-sm font-medium text-slate-700">
-        Contraseña
+      <label className="form-label">
+        Contraseña <span className="required-mark" aria-hidden="true">*</span>
+        <span className="sr-only"> obligatorio</span>
         <input
           autoComplete="current-password"
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+          className="form-control"
+          id="login-password"
           onChange={(event) => setPassword(event.target.value)}
           required
           type="password"
@@ -54,12 +58,12 @@ export default function LoginForm() {
         />
       </label>
       {errorMessage ? (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">
+        <p className="form-alert" role="alert">
           {errorMessage}
         </p>
       ) : null}
       <button
-        className="w-full rounded-lg bg-emerald-800 px-4 py-2.5 font-semibold text-white disabled:opacity-60"
+        className="btn-primary w-full"
         disabled={pending}
         type="submit"
       >

@@ -35,15 +35,18 @@ async function OwnerPanel({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-          <Link className="font-bold text-slate-900" href="/panel/lotes">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border-subtle bg-surface">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <Link className="font-bold tracking-tight text-slate-900" href="/panel/lotes">
             Panel del propietario
           </Link>
-          <nav aria-label="Navegación del panel" className="flex items-center gap-4">
-            <Link className="text-sm text-slate-700 hover:text-emerald-800" href="/panel/lotes">
+          <nav aria-label="Navegación del panel" className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <Link className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-brand-soft hover:text-brand" href="/panel/lotes">
               Lotes
+            </Link>
+            <Link className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-brand-soft hover:text-brand" href="/panel/ventas">
+              Ventas
             </Link>
             <LogoutButton />
           </nav>

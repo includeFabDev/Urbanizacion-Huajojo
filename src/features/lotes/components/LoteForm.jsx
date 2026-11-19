@@ -248,16 +248,21 @@ export default function LoteForm({ loteId = null }) {
     return <p className="p-6 text-slate-600" role="status">Cargando formulario…</p>;
   }
   if (editing && !baseline) {
-    return <p className="rounded-lg bg-red-50 p-4 text-red-800" role="alert">{message || "No fue posible cargar el lote para editarlo."}</p>;
+    return <p className="form-alert" role="alert">{message || "No fue posible cargar el lote para editarlo."}</p>;
   }
 
   return (
-    <form className="space-y-6" onSubmit={submit}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-slate-700">
-          Manzano <span aria-hidden="true">*</span>
+    <form className="form-stack" onSubmit={submit}>
+      <fieldset className="form-section">
+        <legend className="form-section-title">Identificación</legend>
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <label className="form-label">
+          Manzano <RequiredMark />
           <select
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+            className="form-control"
+            aria-describedby={errors.manzano_id ? "lot-manzano-error" : undefined}
+            aria-invalid={Boolean(errors.manzano_id)}
+            id="lot-manzano"
             onChange={(event) => change("manzano_id", event.target.value)}
             required
             value={values.manzano_id}
@@ -269,20 +274,24 @@ export default function LoteForm({ loteId = null }) {
               </option>
             ))}
           </select>
-          {errors.manzano_id ? <FieldError>{errors.manzano_id}</FieldError> : null}
+          {errors.manzano_id ? <FieldError id="lot-manzano-error">{errors.manzano_id}</FieldError> : null}
         </label>
 
         <Field
           error={errors.numero}
+          id="lot-number"
           label="Número de lote"
           onChange={(value) => change("numero", value)}
           required
           value={values.numero}
         />
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="form-label">
           Categoría
           <select
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+            className="form-control"
+            aria-describedby={errors.categoria ? "lot-category-error" : undefined}
+            aria-invalid={Boolean(errors.categoria)}
+            id="lot-category"
             onChange={(event) => change("categoria", event.target.value)}
             value={values.categoria}
           >
@@ -290,31 +299,69 @@ export default function LoteForm({ loteId = null }) {
             <option value="REGULAR">Regular</option>
             <option value="VIS">Vivienda de interés social (VIS)</option>
           </select>
-          {errors.categoria ? <FieldError>{errors.categoria}</FieldError> : null}
+          {errors.categoria ? <FieldError id="lot-category-error">{errors.categoria}</FieldError> : null}
         </label>
+        </div>
+      </fieldset>
 
+      <fieldset className="form-section">
+        <legend className="form-section-title">Características físicas</legend>
         <Field
           error={errors.superficie}
+          id="lot-surface"
           label={surfaceLabel}
           onChange={(value) => change("superficie", value)}
           value={values.superficie}
         />
+        <p className="field-help">
+          {editing
+            ? "La nueva superficie se guarda como verificada; la estimación de origen se conserva aparte."
+            : "La superficie informada no se considera verificada en campo."}
+        </p>
+        {!editing ? (
+          <div className="rounded-xl border border-border-subtle bg-background p-4">
+            <h2 className="text-sm font-semibold text-slate-800">Longitudes de lados (opcional)</h2>
+            <p className="field-help mb-3">
+              Registra las longitudes informadas; quedarán pendientes de verificación.
+            </p>
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {values.lados.map((value, index) => (
+                <Field
+                  key={index}
+                  error={index === 0 ? errors.lados : undefined}
+                  id={`lot-side-${index + 1}`}
+                  label={`Lado ${index + 1} (m)`}
+                  onChange={(next) => changeSide(index, next)}
+                  value={value}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </fieldset>
+
+      <fieldset className="form-section">
+        <legend className="form-section-title">Información comercial</legend>
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
         <Field
           error={errors.precio_por_m2}
+          id="lot-price-area"
           label="Precio por m² (opcional)"
           onChange={(value) => change("precio_por_m2", value)}
           value={values.precio_por_m2}
         />
         <Field
           error={errors.precio_referencia_total}
+          id="lot-price-total"
           label="Precio total de referencia (opcional)"
           onChange={(value) => change("precio_referencia_total", value)}
           value={values.precio_referencia_total}
         />
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="form-label">
           Moneda
           <select
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+            className="form-control"
+            id="lot-currency"
             onChange={(event) => change("moneda_referencia", event.target.value)}
             value={values.moneda_referencia}
           >
@@ -323,10 +370,11 @@ export default function LoteForm({ loteId = null }) {
             <option value="BOB">BOB — boliviano</option>
           </select>
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="form-label">
           Habilitación comercial
           <select
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+            className="form-control"
+            id="lot-enabled"
             onChange={(event) => change("habilitado_para_venta", event.target.value)}
             value={values.habilitado_para_venta}
           >
@@ -334,31 +382,12 @@ export default function LoteForm({ loteId = null }) {
             <option value="true">Habilitado para venta</option>
             <option value="false">No habilitado</option>
           </select>
+          <span className="field-help">La habilitación es distinta de la disponibilidad calculada.</span>
         </label>
-      </div>
+        </div>
+      </fieldset>
 
-      {!editing ? (
-        <fieldset className="rounded-xl border border-slate-200 p-4">
-          <legend className="px-1 text-sm font-semibold text-slate-800">
-            Longitudes de lados (opcional)
-          </legend>
-          <p className="mb-3 text-xs text-slate-600">
-            Registra las cuatro longitudes juntas. Se guardarán como informadas,
-            pendientes de verificación.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-4">
-            {values.lados.map((value, index) => (
-              <Field
-                key={index}
-                error={index === 0 ? errors.lados : undefined}
-                label={`Lado ${index + 1} (m)`}
-                onChange={(next) => changeSide(index, next)}
-                value={value}
-              />
-            ))}
-          </div>
-        </fieldset>
-      ) : (
+      {editing ? (
         <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
           <h2 className="font-semibold text-slate-800">Procedencia conservada</h2>
           <p className="mt-1 text-slate-600">
@@ -367,43 +396,39 @@ export default function LoteForm({ loteId = null }) {
             propietario que la registra.
           </p>
         </section>
-      )}
+      ) : null}
 
-      <label className="block text-sm font-medium text-slate-700">
+      <label className="form-label">
         Observaciones internas (opcional)
         <textarea
-          className="mt-1 min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2"
+          className="form-control"
+          aria-describedby={errors.observaciones ? "lot-notes-error" : undefined}
+          aria-invalid={Boolean(errors.observaciones)}
+          id="lot-notes"
           maxLength={1000}
           onChange={(event) => change("observaciones", event.target.value)}
           value={values.observaciones}
         />
-        {errors.observaciones ? <FieldError>{errors.observaciones}</FieldError> : null}
+        {errors.observaciones ? <FieldError id="lot-notes-error">{errors.observaciones}</FieldError> : null}
       </label>
 
       {message ? (
-        <p
-          className={`rounded-lg p-3 text-sm ${
-            message.includes("guardaron")
-              ? "bg-emerald-50 text-emerald-800"
-              : "bg-red-50 text-red-800"
-          }`}
-          role={message.includes("guardaron") ? "status" : "alert"}
-        >
+        <p className="form-alert" role={message.includes("guardaron") ? "status" : "alert"}>
           {message}
         </p>
       ) : null}
       {errors.form ? <FieldError>{errors.form}</FieldError> : null}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="form-actions border-t border-border-subtle pt-4">
         <button
-          className="rounded-lg bg-emerald-800 px-5 py-2.5 font-semibold text-white disabled:opacity-60"
+          className="btn-primary"
           disabled={pending || manzanos.length === 0}
           type="submit"
         >
           {pending ? "Guardando…" : editing ? "Guardar cambios" : "Registrar lote"}
         </button>
         <Link
-          className="rounded-lg border border-slate-300 px-5 py-2.5 font-medium text-slate-700"
+          className="btn-secondary"
           href={editing ? `/panel/lotes/${loteId}` : "/panel/lotes"}
         >
           Cancelar
@@ -413,24 +438,31 @@ export default function LoteForm({ loteId = null }) {
   );
 }
 
-function Field({ error, label, onChange, required = false, value }) {
+function Field({ error, id, label, onChange, required = false, value }) {
+  const errorId = `${id}-error`;
   return (
-    <label className="block text-sm font-medium text-slate-700">
-      {label} {required ? <span aria-hidden="true">*</span> : null}
+    <label className="form-label" htmlFor={id}>
+      {label} {required ? <RequiredMark /> : null}
       <input
+        aria-describedby={error ? errorId : undefined}
         aria-invalid={Boolean(error)}
-        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        className="form-control"
+        id={id}
         inputMode={label.includes("m²") || label.includes("(m)") ? "decimal" : "numeric"}
         onChange={(event) => onChange(event.target.value)}
         required={required}
         type="text"
         value={value}
       />
-      {error ? <FieldError>{error}</FieldError> : null}
+      {error ? <FieldError id={errorId}>{error}</FieldError> : null}
     </label>
   );
 }
 
-function FieldError({ children }) {
-  return <span className="mt-1 block text-xs text-red-700">{children}</span>;
+function RequiredMark() {
+  return <><span className="required-mark" aria-hidden="true">*</span><span className="sr-only"> obligatorio</span></>;
+}
+
+function FieldError({ children, id }) {
+  return <span className="field-error" id={id}>{children}</span>;
 }

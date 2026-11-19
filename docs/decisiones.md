@@ -71,6 +71,21 @@
 - **Justificación:** se necesita una venta vigente en el flujo y una venta
   totalmente pagada debe seguir bloqueando el lote.
 
+## Sprint 2
+
+- Los importes se reciben como cadenas decimales y se almacenan en
+  `NUMERIC(14,2)`; no se reutilizan conversiones históricas de centavos.
+- El saldo se calcula como precio final menos pagos válidos. No se persiste un
+  saldo redundante ni se descuentan cuotas sin pago efectivo.
+- Las operaciones de venta y pago usan locks transaccionales y restricciones
+  PostgreSQL. Las claves idempotentes impiden pagos duplicados por reintento.
+- Los datos del recibo se conservan en `pagos.recibo_datos` al confirmar el
+  pago, de modo que una edición posterior del cliente o lote no altere el
+  comprobante ya emitido.
+- No se genera cronograma de cuotas, interés, multa ni distribución automática
+  de pagos; no existe acuerdo Jira documentado para inventarlos.
+- UH-55 no activa correo ni WhatsApp. La confirmación se muestra en pantalla.
+
 ## Sprint 1 y acceso
 
 - La migración de Sprint 1 es aditiva y no cambia filas existentes. Antes de
